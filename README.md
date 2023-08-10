@@ -7,7 +7,7 @@ This repository is for developing methods to analyze the assocations between miR
 The repository contains the following notebooks in the `notebooks` directory.
 
 ### AI Notebooks 
-- `xgboost_miRNA.ipynb`
+- `xgboost_miRNA.ipynb`  
   Runs XGBoostClassifer on three datasets:
   - Sham and infeceted mice from all weeks; i.e., 8 week and 16 week datasets are merged.
   - Sham and infected mice at 8 weeks.
