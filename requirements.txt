@@ -1,0 +1,21 @@
+# data analysis libraries
+pandas
+numpy
+xlrd
+openpyxl
+statsmodels
+
+# jupyter libraries
+jupyter
+jupyterlab
+ipykernel
+
+# machine learning libraries
+sklearn
+xgboost
+shap
+mlxtend
+
+# visualiztion libraries
+matplotlib
+seaborn
