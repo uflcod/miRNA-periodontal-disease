@@ -3,6 +3,7 @@
 .venv
 env
 venv
+.jupyter
 
 # hide data directory
 data/
