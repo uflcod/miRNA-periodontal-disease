@@ -1,10 +1,21 @@
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import random
-from typing import Union, Tuple, Dict, Any
+from typing import Union, Tuple, Dict, List, Any
 import xgboost as xgb
 import shap
+from sklearn.model_selection \
+    import RandomizedSearchCV, GridSearchCV, LeaveOneOut, cross_val_score
+from pprint import pprint
+
+# supress sklearn warnings (hopefully)
+import warnings
+os.environ["PYTHONWARNINGS"] = "ignore::UserWarning"
+warnings.filterwarnings('ignore')
+warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.simplefilter(action='ignore', category=UserWarning)
 
 def make_study_df(
         miRNA_df:pd.DataFrame, 
@@ -48,6 +59,95 @@ def make_study_df(
     
     return df
 
+
+def param_search_cv(
+        param_grid:Dict, 
+        X_data:pd.DataFrame,
+        y_targets: Union[pd.Series, List, np.ndarray],
+        model:Any,
+        cvs:List,
+        search_type:str='random',
+        n_iter:int=100,
+        random_state:int=42,
+        n_jobs:int=-1,
+        print_iter:bool=False,
+        print_scores:bool=False,
+        print_best:bool=False
+) -> Dict:
+    scores = []
+    best_search = {
+        'score': 0,
+        'cv': 0,
+        'params': {}
+    }
+    for cv in cvs:
+        params = \
+            param_search(
+                param_grid, 
+                X_data, 
+                y_targets, 
+                model, 
+                cv=cv,
+                search_type=search_type,
+                n_iter=n_iter,
+                random_state=random_state,
+                n_jobs=n_jobs, 
+                print_best=False)
+        m = model(**params).fit(X_data, y_targets)
+        sc = np.mean(cross_val_score(m, X_data, y_targets, cv=LeaveOneOut()))
+        scores.append(sc)
+        if sc > best_search['score']:
+            best_search['score'] = sc
+            best_search['cv'] = cv
+            best_search['params'] = params
+
+        if print_iter:
+            print(f'cv: {cv}', f'score: {sc}')
+
+    if print_scores:
+        pprint(scores)
+
+    if print_best:
+        pprint(best_search)
+
+    return best_search
+
+
+def param_search(
+        param_grid:Dict, 
+        X_data:pd.DataFrame,
+        y_targets: Union[pd.Series, List, np.ndarray],
+        model:Any,
+        search_type:str='random',
+        n_iter:int=100,
+        cv:int=3,
+        random_state:int=42,
+        n_jobs=-1,
+        print_best=True
+) -> Dict:
+    if 'random' == search_type:
+        param_model = RandomizedSearchCV(
+            estimator=model(),
+            param_distributions=param_grid,
+            n_iter=n_iter,
+            cv=cv,
+            random_state=random_state,
+            n_jobs=n_jobs
+        )
+    elif 'grid' == search_type:
+        param_model = GridSearchCV(
+            estimator=model(),
+            param_grid=param_grid,
+            cv=cv,
+            n_jobs=n_jobs
+        )
+    else:
+        raise ValueError("search_type must be 'random' or 'grid'")
+    
+    param_model.fit(X_data, y_targets)
+    if True == print_best:
+        pprint(param_model.best_params_)
+    return param_model.best_params_
 
 def plot_xgb_feature_importance(
     model: xgb.XGBModel, 
