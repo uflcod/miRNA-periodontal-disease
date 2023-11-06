@@ -1,0 +1,33 @@
+** 8 weeks params **
+{'cv': 2,
+ 'params': {'booster': 'gbtree',
+            'colsample_bytree': 0.7,
+            'gamma': 0.4,
+            'learning_rate': 0.3,
+            'max_depth': 40,
+            'n_estimators': 975,
+            'objective': 'binary:logistic',
+            'random_state': 0},
+ 'score': 1.0}
+** 16 weeks params **
+{'cv': 2,
+ 'params': {'booster': 'gbtree',
+            'colsample_bytree': 0.7,
+            'gamma': 0.4,
+            'learning_rate': 0.3,
+            'max_depth': 40,
+            'n_estimators': 975,
+            'objective': 'binary:logistic',
+            'random_state': 0},
+ 'score': 1.0}
+** All weeks params **
+{'cv': 2,
+ 'params': {'booster': 'gbtree',
+            'colsample_bytree': 0.7,
+            'gamma': 0.4,
+            'learning_rate': 0.3,
+            'max_depth': 40,
+            'n_estimators': 975,
+            'objective': 'binary:logistic',
+            'random_state': 0},
+ 'score': 1.0}

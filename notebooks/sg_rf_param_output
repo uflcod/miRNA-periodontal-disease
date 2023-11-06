@@ -1,0 +1,36 @@
+** 8 weeks params **
+{'cv': 2,
+ 'params': {'bootstrap': False,
+            'criterion': 'gini',
+            'max_depth': 130,
+            'max_features': 'log2',
+            'min_samples_leaf': 1,
+            'min_samples_split': 6,
+            'n_estimators': 240,
+            'oob_score': False,
+            'random_state': 0},
+ 'score': 1.0}
+** 16 weeks params **
+{'cv': 2,
+ 'params': {'bootstrap': False,
+            'criterion': 'gini',
+            'max_depth': 130,
+            'max_features': 'log2',
+            'min_samples_leaf': 1,
+            'min_samples_split': 6,
+            'n_estimators': 240,
+            'oob_score': False,
+            'random_state': 0},
+ 'score': 1.0}
+** All weeks params **
+{'cv': 2,
+ 'params': {'bootstrap': False,
+            'criterion': 'gini',
+            'max_depth': 130,
+            'max_features': 'log2',
+            'min_samples_leaf': 1,
+            'min_samples_split': 6,
+            'n_estimators': 240,
+            'oob_score': False,
+            'random_state': 0},
+ 'score': 1.0}
