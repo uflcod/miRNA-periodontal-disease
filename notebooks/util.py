@@ -17,9 +17,10 @@ warnings.filterwarnings('ignore')
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=UserWarning)
 
+
 def make_study_df(
         miRNA_df:pd.DataFrame, 
-        infected_str:str='tf_', 
+        infected_str:str, 
         cohort_str:Union[None, str]=None,
         shorten_miRNA_name:bool=True
     ) -> pd.DataFrame:
@@ -501,3 +502,82 @@ def top_shap_values(shap_values:Any, top_n:int=5, print_importance:bool=False):
     ret_val = shap_values[:, idx]
     ret_val.feature_names = list(shap_importance['feature'])
     return ret_val
+
+
+def transpose_nanostring_df(df:pd.DataFrame, cohort=None):
+    def create_cohort_key(cohorts:List, mouse_numbers:List):
+        cohort_keys = [
+            c + '_' + n
+            for c,n in zip(cohorts, mouse_numbers)
+        ]
+        return cohort_keys
+        
+    # get file name values from spreadsheet version of datafame
+    # ignore the first two cols
+    # df.columns[2:12] is needed to prevent reading blank columns
+    # the '.RCC' is removed for the file names
+    file_names = [
+        col[:-4] for col in df.columns[2:12]
+    ]
+    
+    # subset Endogenous results from data
+    # and create miR name values from miR and accesson; e.g.: mmu-miR-99b (MIMAT0000132)
+    # iloc[:, 0:12] is needed to prevent reading blank columns
+    # col[0] is the miR, col[1] is the accession number
+    endogenous_df = df.loc['Endogenous'].iloc[:, 0:12] 
+    miR_names = endogenous_df.iloc[:, 0] + ' (' + endogenous_df.iloc[:, 1] + ')' 
+    
+    # transpose the results ignoring first two columns
+    # and assign miR names as column headers
+    # note: need to dropna() to remove empty data in spreadsheet
+    tx_df = endogenous_df.iloc[:, 2:].transpose().dropna()
+    tx_df.columns = miR_names
+    tx_df[miR_names] = tx_df[miR_names].astype(int)
+    
+    # parse mouse number from file name (e.g.; 20220829_run10_GVI-8W-10_12 -> 10_12)
+    mouse_numbers = [x.split('-')[-1] for x in file_names] # e.g.: 10_2
+
+    # parse sex from part of mouse number after '_'; 10_2 -> 2
+    # < 6 is male (0) ; > 5 is female (1) 
+    females = [
+        0 if int(m.split('_')[-1]) < 6 else 1
+        for m in mouse_numbers
+    ]
+    
+    # insert colums
+    tx_df.insert(0, 'Name', file_names) # file names from above
+    tx_df.insert(0, 'mouse_number', mouse_numbers) # mouse numbers 
+    tx_df['female'] = females # < 6 is male (0) ; > 5 is female (1) 
+
+    # print(females, sample_ids, mouse_numbers)
+    
+    
+    # add name of cohort
+    if cohort:
+        tx_df.insert(0, 'cohort', cohort)
+
+        # add cohort key
+        cohort_keys = create_cohort_key(tx_df.cohort, tx_df.mouse_number)
+        tx_df.insert(0, 'cohort_key', cohort_keys)
+
+    return tx_df.reset_index(drop=True) # notee drop the original index
+
+
+def make_mirna_nanostring_df(file_names:List, cohort_names:List) -> pd.DataFrame:
+    def make_df_from_file(filename:str):
+        if filename.endswith('.xlsx'):
+            return pd.read_excel(filename, index_col='File Name')
+        elif filename.endswith('.tsv'): 
+            return pd.read_table(filename, index_col='File Name')
+        else:
+            return pd.read_csv(filename, index_col='File Name')
+
+    # transpose the dataframes
+    dfs = [
+        transpose_nanostring_df(make_df_from_file(file_name), cohort_name) 
+        for (file_name, cohort_name) in zip(file_names, cohort_names)
+    ]
+
+    final_df = pd.concat(dfs)
+
+    return final_df
