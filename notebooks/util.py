@@ -20,7 +20,7 @@ warnings.simplefilter(action='ignore', category=UserWarning)
 
 def make_study_df(
         miRNA_df:pd.DataFrame, 
-        infected_str:str='tf_', 
+        infected_str:str, 
         cohort_str:Union[None, str]=None,
         shorten_miRNA_name:bool=True
     ) -> pd.DataFrame:
@@ -514,20 +514,23 @@ def transpose_nanostring_df(df:pd.DataFrame, cohort=None):
         
     # get file name values from spreadsheet version of datafame
     # ignore the first two cols
+    # df.columns[2:12] is needed to prevent reading blank columns
     # the '.RCC' is removed for the file names
     file_names = [
-        col[:-4] for col in df.columns[2:]
+        col[:-4] for col in df.columns[2:12]
     ]
     
     # subset Endogenous results from data
     # and create miR name values from miR and accesson; e.g.: mmu-miR-99b (MIMAT0000132)
+    # iloc[:, 0:12] is needed to prevent reading blank columns
     # col[0] is the miR, col[1] is the accession number
-    endogenous_df = df.loc['Endogenous']
-    miR_names = endogenous_df.iloc[:, 0] + ' (' + endogenous_df.iloc[:, 1] + ')'
+    endogenous_df = df.loc['Endogenous'].iloc[:, 0:12] 
+    miR_names = endogenous_df.iloc[:, 0] + ' (' + endogenous_df.iloc[:, 1] + ')' 
     
     # transpose the results ignoring first two columns
     # and assign miR names as column headers
-    tx_df = endogenous_df.iloc[:, 2:].transpose()
+    # note: need to dropna() to remove empty data in spreadsheet
+    tx_df = endogenous_df.iloc[:, 2:].transpose().dropna()
     tx_df.columns = miR_names
     tx_df[miR_names] = tx_df[miR_names].astype(int)
     
