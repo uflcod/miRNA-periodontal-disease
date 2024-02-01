@@ -526,13 +526,13 @@ def transpose_nanostring_df(df:pd.DataFrame, cohort=None):
     # col[0] is the miR, col[1] is the accession number
     endogenous_df = df.loc['Endogenous'].iloc[:, 0:12] 
     miR_names = endogenous_df.iloc[:, 0] + ' (' + endogenous_df.iloc[:, 1] + ')' 
-    
+
     # transpose the results ignoring first two columns
     # and assign miR names as column headers
     # note: need to dropna() to remove empty data in spreadsheet
     tx_df = endogenous_df.iloc[:, 2:].transpose().dropna()
     tx_df.columns = miR_names
-    tx_df[miR_names] = tx_df[miR_names].astype(int)
+    tx_df[miR_names] = tx_df[miR_names].astype(float).astype(int)
     
     # parse mouse number from file name (e.g.; 20220829_run10_GVI-8W-10_12 -> 10_12)
     mouse_numbers = [x.split('-')[-1] for x in file_names] # e.g.: 10_2
