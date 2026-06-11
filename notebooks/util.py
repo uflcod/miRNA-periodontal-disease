@@ -22,14 +22,20 @@ def make_study_df(
         miRNA_df:pd.DataFrame, 
         infected_str:str, 
         cohort_str:Union[None, str]=None,
-        shorten_miRNA_name:bool=True
+        shorten_miRNA_name:bool=True,
+        shuffle_cols:bool=True,
+        shuffle_rows:bool=True,
+        keep_female:bool=False
     ) -> pd.DataFrame:
 
     df = miRNA_df.copy()
 
     # subset to cohort
-    if cohort_str:
-        df = df[df.cohort.str.endswith(cohort_str)]
+    if cohort_str is not None:
+        df = df[df['cohort'].str.endswith(cohort_str)]
+    
+    # strip the female column for now, it is not needed for shortening the miRNA col names
+    df, female_df = df.drop('female', axis=1), df[['female']]
 
     # short the col name of the miRNA
     # e.g., mmu-miR-1971 (MIMAT0009446) -> miR-1971
@@ -50,14 +56,20 @@ def make_study_df(
     # drop cohort, number, and name data
     df = df.iloc[:, 4:] 
 
-    # shuffle data
-    df = df.sample(frac=1, random_state=1989)
-
     # shuffle columns
-    cols = list(df.columns)
-    random.shuffle(cols)
-    df = df[cols]
-    
+    if shuffle_cols:
+        cols = list(df.columns)
+        random.shuffle(cols)
+        df = df[cols]
+        
+    # special case for the female column
+    if keep_female:
+        df = pd.concat([female_df, df], axis=1)
+
+    # shuffle data rows
+    if shuffle_rows:
+        df = df.sample(frac=1, random_state=1989)
+
     return df
 
 
@@ -149,6 +161,7 @@ def param_search(
     if True == print_best:
         pprint(param_model.best_params_)
     return param_model.best_params_
+
 
 def plot_xgb_feature_importance(
     model: xgb.XGBModel, 
@@ -551,16 +564,15 @@ def transpose_nanostring_df(df:pd.DataFrame, cohort=None):
 
     # print(females, sample_ids, mouse_numbers)
     
-    
     # add name of cohort
-    if cohort:
+    if cohort is not None:
         tx_df.insert(0, 'cohort', cohort)
 
         # add cohort key
         cohort_keys = create_cohort_key(tx_df.cohort, tx_df.mouse_number)
         tx_df.insert(0, 'cohort_key', cohort_keys)
 
-    return tx_df.reset_index(drop=True) # notee drop the original index
+    return tx_df.reset_index(drop=True) # note: drop the original index
 
 
 def make_mirna_nanostring_df(file_names:List, cohort_names:List) -> pd.DataFrame:
@@ -581,3 +593,46 @@ def make_mirna_nanostring_df(file_names:List, cohort_names:List) -> pd.DataFrame
     final_df = pd.concat(dfs)
 
     return final_df
+
+def save_study_df(
+        file_name:str, 
+        cohort_name:str, 
+        output_file:str, 
+        infected_str:str=None,
+        shorten_miRNA_name:bool=True,
+        shuffle_cols:bool=True,
+        shuffle_rows:bool=True,
+        keep_female:bool=False
+    ) -> pd.DataFrame:
+
+    # set the infected string if not given
+    if infected_str is None:
+        infected_str = cohort_name
+
+    # test input params, file_name and cohort_name need to be lists
+    if not isinstance(file_name, list):
+        file_name = [file_name]
+    if not isinstance(cohort_name, list):
+        cohort_name = [cohort_name]
+
+    miRNA_df = make_mirna_nanostring_df(file_name, cohort_name)
+    # print(miRNA_df.iloc[:5, :6])
+    df = make_study_df(
+            miRNA_df, 
+            infected_str,
+            cohort_str=None,
+            shorten_miRNA_name=shorten_miRNA_name,
+            shuffle_cols=shuffle_cols,
+            shuffle_rows=shuffle_rows, 
+            keep_female=keep_female
+        )
+
+    if output_file.endswith('.csv'):
+        df.to_csv(output_file, index=False)
+    elif output_file.endswith('.tsv'):
+        df.to_csv(output_file, index=False, sep='\t')
+    elif output_file.endswith('.xlsx'):
+        df.to_excel(output_file, index=False)
+    else:
+        raise ValueError("Unsupported file format. Please use .csv, .tsv, or .xlsx")
+    return df
