@@ -33,8 +33,10 @@ from scipy import stats
 # =============================================================================
 # Configuration
 # =============================================================================
-PRE_FILE        = "Pg_8_weeks.csv"
-POST_FILE       = "Pg_16_weeks.csv"
+# PRE_FILE        = "Pg_8_weeks.csv"
+PRE_FILE        = "./data/Pg_8_weeks_infected_5_cols.csv"
+# POST_FILE       = "Pg_16_weeks.csv"
+POST_FILE       = "./data/Pg_16_weeks_infected_5_cols.csv"
 NORM_FILE       = "deseq2_normalized_counts.csv"   # optional
 FDR_ALPHA       = 0.05
 PSEUDOCOUNT     = 1.0   # added before log2 to avoid log(0)

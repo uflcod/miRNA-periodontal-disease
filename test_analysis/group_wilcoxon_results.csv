@@ -1,0 +1,6 @@
+miRNA,median_log2FC,W_statistic,p_value,q_value_BH,sig_nominal,sig_FDR
+miR-M44-1,0.2568,11.0,0.097656,0.351562,False,False
+miR-M23-1-5p,-0.0791,7.0,0.140625,0.351562,False,False
+miR-M55-1,-0.2115,17.0,0.308594,0.390625,False,False
+miR-M23-2,-0.039,14.5,0.382812,0.390625,False,False
+miR-M23-1-3p,-0.1258,18.5,0.390625,0.390625,False,False

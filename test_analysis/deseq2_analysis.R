@@ -9,8 +9,8 @@
 library(DESeq2)
 
 # --- Load data ----------------------------------------------------------------
-pre  <- read.csv("Pg_8_weeks.csv",  check.names = FALSE)
-post <- read.csv("Pg_16_weeks.csv", check.names = FALSE)
+pre  <- read.csv("./data/Pg_8_weeks_infected_5_cols.csv",  check.names = FALSE)
+post <- read.csv("./data/Pg_16_weeks_infected_5_cols.csv", check.names = FALSE)
 
 # Drop the 'infected' label column
 pre  <- pre[,  colnames(pre)  != "infected"]
